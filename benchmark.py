@@ -2,8 +2,8 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import requests
 import time
 
-A = [10**7, 20**7, 40**7, 50**7, 60**7]
-B = [11**7, 22**7, 33**7, 44**7, 55**7]
+A = [100000, 2000000, 4000000, 5000000, 6000000]
+
 URL = ['https://httpbin.org/delay/1',
        'https://httpbin.org/delay/2',
        'https://httpbin.org/delay/3',
@@ -23,36 +23,31 @@ def benchmark(name, func):
     return result
 
 
-def benchmark_cpu(a: int, b: int):
-    result = 0
-    for i in range(100000000):
-        result += (a ** 2 + b ** 2) * i
-    return result
+def benchmark_cpu(n: int):
+    return sum(i * i for i in range(n))
 
 
-def benchmark_I_O(url: str):
+def benchmark_i_o(url: str):
     response = requests.get(url)
     return response.status_code
 
 
 if __name__ == '__main__':
     print('CPU-bound задания')
-    benchmark('-Однопоточность', lambda: list(map(benchmark_cpu, A, B)))
+    benchmark('Однопоточность', lambda: list(map(benchmark_cpu, A)))
 
     with ThreadPoolExecutor(max_workers=5) as executor:
-        benchmark('-Многопоточность', lambda: list(executor.map(benchmark_cpu, A, B)))
+        benchmark('Многопоточность', lambda: list(executor.map(benchmark_cpu, A)))
 
     with ProcessPoolExecutor(max_workers=5) as executor:
-        benchmark('-Многопроцессорность', lambda: list(executor.map(benchmark_cpu, A, B)))
+        benchmark('Многопроцессорность', lambda: list(executor.map(benchmark_cpu, A)))
 
-
-    print('=' * 100)
 
     print('I/O-bound задания')
-    benchmark('-Однопоточность', lambda: list(map(benchmark_I_O, URL)))
+    benchmark('Однопоточность', lambda: list(map(benchmark_i_o, URL)))
 
     with ThreadPoolExecutor(max_workers=5) as executor:
-        benchmark('-Многопоточность', lambda: list(executor.map(benchmark_I_O, URL)))
+        benchmark('Многопоточность', lambda: list(executor.map(benchmark_i_o, URL)))
 
     with ProcessPoolExecutor(max_workers=5) as executor:
-        benchmark('-Многопроцессорность', lambda: list(executor.map(benchmark_I_O, URL)))
+        benchmark('Многопроцессорность', lambda: list(executor.map(benchmark_i_o, URL)))

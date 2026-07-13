@@ -3,6 +3,13 @@ venv/
 env/
 .env/
 .venv/
+.env
+.idea/
+.vscode/
 
 # Файлы Python
 __pycache__/
+
+# Логи
+io_bound.log
+*.log

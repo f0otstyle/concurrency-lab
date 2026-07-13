@@ -1,0 +1,67 @@
+import asyncio
+import aiohttp
+import time
+import logging
+
+STATUS = [404, 503, 403]
+TIMEOUT = 10
+SEMAPHORE = 5
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    filename='io_bound.log',
+    encoding='utf-8',
+    filemode='a',
+)
+
+logger = logging.getLogger('io_bound')
+
+
+async def get_url(session, semaphore, url: str, num: int):
+    try:
+        async with semaphore:
+            logger.info('Запись началась')
+            async with session.get(
+                    url,
+                    timeout=aiohttp.ClientTimeout(total=TIMEOUT)
+                    ) as response:
+                status = response.status
+                logger.info(
+                    f'Запрос №: {num} выполнился со статус кодом {status}'
+                    )
+                return status
+    except aiohttp.ClientError as error:
+        logger.error(f"Error received {error}")
+        return None
+    except asyncio.TimeoutError:
+        logger.error(f"Запрос №: {num} превышено время запроса")
+        return None
+    except Exception as error:
+        logger.error(
+            f'Получена не известнная ошибка {error} на запросе №: {num}'
+            )
+
+
+async def main():
+    start = time.perf_counter()
+    semaphore = asyncio.Semaphore(SEMAPHORE)
+    async with aiohttp.ClientSession() as session:
+        tasks = [
+            get_url(
+                session, semaphore,
+                f'https://httpbin.org/delay/{i}', i) for i in range(10)]
+        results = await asyncio.gather(*tasks)
+
+    count = 0
+    for res in results:
+        if res is not None and res not in STATUS:
+            count += 1
+
+    elapsed = time.perf_counter() - start
+    print(
+        f'Успешно обработано {count} асинхронных запросов - за время {elapsed:.2f}'
+        )
+
+if __name__ == '__main__':
+    asyncio.run(main())
