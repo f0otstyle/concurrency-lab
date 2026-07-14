@@ -37,7 +37,7 @@ def get_url(url: str, num: int):
 
 def main():
     start = time.perf_counter()
-    results = [get_url(f'https://httpbin.org/delay/{i}', i) for i in range(10)]
+    results = [get_url('http://localhost:8000/delay/1', i) for i in range(50)]
 
     count = 0
     for res in results:

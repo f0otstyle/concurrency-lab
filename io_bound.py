@@ -4,7 +4,7 @@ import time
 import logging
 
 STATUS = [404, 503, 403]
-TIMEOUT = 10
+TIMEOUT = 15
 SEMAPHORE = 5
 
 logging.basicConfig(
@@ -50,7 +50,7 @@ async def main():
         tasks = [
             get_url(
                 session, semaphore,
-                f'https://httpbin.org/delay/{i}', i) for i in range(10)]
+                'http://localhost:8000/delay/1', i) for i in range(50)]
         results = await asyncio.gather(*tasks)
 
     count = 0
