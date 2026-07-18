@@ -11,5 +11,7 @@ env/
 __pycache__/
 
 # Логи
-io_bound.log
+async_client.log
+compare.log
+sync_client.log
 *.log
